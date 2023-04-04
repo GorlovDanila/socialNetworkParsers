@@ -1,0 +1,77 @@
+1. Для сбора информации в базу
+DROP TABLE IF EXISTS type_reaction CASCADE;
+DROP TABLE IF EXISTS reaction;
+DROP TABLE IF EXISTS comment;
+DROP TABLE IF EXISTS social_network_post;
+
+CREATE TYPE type_of_social_network AS enum ('YouTube', 'VK', 'Telegram');
+
+CREATE TABLE type_reaction
+(
+    code  varchar unique,
+    smile varchar
+);
+
+CREATE TABLE social_network_post
+(
+    id                  BIGSERIAL PRIMARY KEY,
+    number_of_views     INT,
+    date_of_publication DATE,
+    number_of_comments  INT,
+    type_of_sn          type_of_social_network,
+    content             TEXT,
+    CT                  BIGINT,
+    ER                  INT,
+    CP                  INT,
+    CP_MIN              FLOAT
+);
+
+CREATE TABLE reaction
+(
+    id                 BIGSERIAL PRIMARY KEY,
+    id_of_post         BIGINT REFERENCES social_network_post (id),
+    type_of_emotion    varchar REFERENCES type_reaction (code),
+    number_of_emotions BIGINT
+);
+
+CREATE TABLE comment
+(
+    id              BIGSERIAL PRIMARY KEY,
+    id_of_post      BIGINT REFERENCES social_network_post (id),
+    time_of_comment DATE,
+    author          varchar,
+    content         text
+);
+
+2. Для проведения аналитики
+DROP TABLE IF EXISTS data;
+DROP TABLE IF EXISTS social_network_post;
+CREATE TABLE social_network_post
+(
+    id BIGSERIAL PRIMARY KEY,
+    attachment boolean,
+    content text,
+    likes bigint,
+    comments bigint,
+    reposts bigint
+);
+
+CREATE table data
+(
+    id bigserial primary key,
+    post_id bigint references social_network_post(id),
+    CT bigint,
+    ER float,
+    CP float,
+    CP_MIN float
+);
+
+(select (sum(cp_min) / count(cp_min)) as CT_YT from data
+    where id <= 34);
+
+(select (sum(cp_min) / count(cp_min)) as CT_VK from data
+    where id >= 34 and id <= 505);
+
+(select (sum(cp_min) / count(cp_min)) as CT_TG from data
+    where id > 505);
+
